@@ -1,0 +1,31 @@
+<?php
+
+namespace App\Http\Middleware;
+
+use App\Models\Clinic;
+use App\Models\User;
+use Closure;
+use Illuminate\Contracts\Session\Session;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\View;
+
+class ClinicBalance
+{
+    /**
+     * Handle an incoming request.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
+     */
+    public function handle(Request $request, Closure $next)
+    {
+        if (Auth::guard()->user()->role === "clinic") {
+            $clinicBalance = Clinic::select('clinics.wallet_amount')->where('clinics.user_id', Auth::guard()->user()->id)
+                ->get()->toArray();
+            session()->put("clinicBalance", isset($clinicBalance[0]['wallet_amount']) ? $clinicBalance[0]['wallet_amount'] : 0.00);
+        }
+        return $next($request);
+    }
+}
